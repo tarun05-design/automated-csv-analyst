@@ -45,7 +45,7 @@ cd automated-csv-analyst
 pip install -r requirements.txt
 
 # 3. Run the app
-streamlit run final2.py
+streamlit run app.py
 ```
 
 The app opens automatically at `http://localhost:8501`
@@ -72,7 +72,7 @@ GEMINI_API_KEY = "your-key-here"
 
 ```
 automated-csv-analyst/
-├── final2.py          # Main Streamlit app
+├── app.py          # Main Streamlit app
 ├── requirements.txt   # Python dependencies
 └── README.md
 ```
@@ -97,7 +97,7 @@ automated-csv-analyst/
 1. Fork this repo
 2. Go to [share.streamlit.io](https://share.streamlit.io)
 3. Connect your GitHub and select this repo
-4. Set **Main file path** to `final2.py`
+4. Set **Main file path** to `app.py`
 5. Add your `GEMINI_API_KEY` under **Settings → Secrets**
 6. Click Deploy
 
