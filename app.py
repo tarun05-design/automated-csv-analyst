@@ -1,13 +1,13 @@
-# app.py - Automated CSV Analyst (Improved v2)
+# app.py - Automated CSV Analyst
 """
 Automated CSV Analyst - Improved Version
-Improvements over v1:
+
+Improvements:
   1. Plotly interactive charts (hover, zoom, pan) instead of static Matplotlib
   2. Per-chart PNG download button
   3. Better dataset type detection (retail, income, spending keywords)
   4. st.cache_data for analysis to avoid re-running on tab switches
   5. Column-level drill-down in Data Preview tab
-  6. Recruiter-ready UX polish throughout
 
 Environment variables / Streamlit secrets (optional):
 - GEMINI_API_KEY
@@ -265,12 +265,15 @@ def infer_column_roles(df):
         s = df[col]
         non_null = s.dropna()
         col_lower = str(col).strip().lower()
+
         if len(non_null) == 0:
             roles["categorical"].append(col)
             continue
+
         if pd.api.types.is_bool_dtype(s):
             roles["boolean"].append(col)
             continue
+
         if pd.api.types.is_numeric_dtype(s):
             if non_null.nunique() >= max(0.9 * len(non_null), 1) and (
                 "id" in col_lower or col_lower.endswith("_id") or col_lower == "id"
@@ -279,20 +282,30 @@ def infer_column_roles(df):
             else:
                 roles["numeric"].append(col)
             continue
+
         if pd.api.types.is_datetime64_any_dtype(s):
             roles["datetime"].append(col)
             continue
-        if s.dtype == "object":
-            converted, rate = coerce_datetime_preview(non_null.astype(str))
+
+        if pd.api.types.is_object_dtype(s) or pd.api.types.is_string_dtype(s):
+            text_values = non_null.astype(str).str.strip()
+            converted, rate = coerce_datetime_preview(text_values)
             has_date_name = any(token in col_lower for token in ["date", "time", "day", "month", "year"])
-            looks_dateish = non_null.astype(str).str.contains(r"[-/:]", regex=True).mean() > 0.5 if len(non_null) else False
-            if len(non_null) > 0 and rate >= 0.7 and (has_date_name or looks_dateish):
+            month_name_ratio = text_values.str.contains(
+                r"jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec",
+                case=False,
+                regex=True,
+            ).mean() if len(text_values) else 0.0
+            looks_dateish = text_values.str.contains(r"[-/:,]", regex=True).mean() > 0.4 if len(text_values) else False
+
+            if rate >= 0.6 and (has_date_name or looks_dateish or month_name_ratio > 0.4):
                 roles["datetime"].append(col)
                 continue
-            nunique = non_null.nunique()
-            avg_len = non_null.astype(str).str.len().mean() if len(non_null) else 0
+
+            nunique = text_values.nunique()
+            avg_len = text_values.str.len().mean() if len(text_values) else 0
             if (
-                nunique >= max(0.9 * len(non_null), 1)
+                nunique >= max(0.9 * len(text_values), 1)
                 and avg_len < 40
                 and ("id" in col_lower or col_lower.endswith("_id") or col_lower == "id")
             ):
@@ -302,6 +315,7 @@ def infer_column_roles(df):
             else:
                 roles["categorical"].append(col)
             continue
+
         roles["categorical"].append(col)
     return roles
 
@@ -1855,16 +1869,24 @@ def main():
             if st.session_state.analysis is not None:
                 roles = st.session_state.analysis["roles"]
                 st.markdown("### Inferred Roles")
+
+                def _render_role_block(title, items):
+                    st.write(f"**{title}**")
+                    if items:
+                        st.caption(", ".join(str(x) for x in items[:8]))
+                    else:
+                        st.caption("None detected")
+
                 c1, c2, c3 = st.columns(3)
                 with c1:
-                    st.write("**Numeric**", roles["numeric"] or ["—"])
-                    st.write("**Datetime**", roles["datetime"] or ["—"])
+                    _render_role_block("Numeric", roles["numeric"])
+                    _render_role_block("Datetime", roles["datetime"])
                 with c2:
-                    st.write("**Categorical**", roles["categorical"] or ["—"])
-                    st.write("**Boolean**", roles["boolean"] or ["—"])
+                    _render_role_block("Categorical", roles["categorical"])
+                    _render_role_block("Boolean", roles["boolean"])
                 with c3:
-                    st.write("**ID-like**", roles["id_like"] or ["—"])
-                    st.write("**Text-like**", roles["text_like"] or ["—"])
+                    _render_role_block("ID-like", roles["id_like"])
+                    _render_role_block("Text-like", roles["text_like"])
 
             # IMPROVED: Column-level drill-down
             st.markdown("---")
