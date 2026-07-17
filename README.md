@@ -35,15 +35,15 @@ Automated CSV Analyst is an end-to-end data analysis tool built with Streamlit, 
 
 ```mermaid
 flowchart TD
-    A[Upload CSV File] --> B[Data Engine: Auto-Type & Missing Value Detection]
-    B --> C{User Workflow Tab}
-    C -->|Tab 1| D1[Overview & Automated Insights]
-    C -->|Tab 2| D2[Data Cleaning & Standardization]
-    C -->|Tab 3| D3[Interactive Plotly Visualizations]
-    C -->|Tab 4| D4[Ask AI: Gemini 2.5 Flash Copilot]
-    C -->|Tab 5| D5[Executive Markdown Report Export]
-    D4 -->|API Key Present| E1[Gemini 2.5 Inference]
-    D4 -->|No API Key| E2[Local Analyst Fallback Engine]
+    A["Upload CSV File"] --> B["Data Engine: Auto-Type & Missing Value Detection"]
+    B --> C{"User Workflow Tab"}
+    C -->|Tab 1| D1["Overview & Automated Insights"]
+    C -->|Tab 2| D2["Data Cleaning & Standardization"]
+    C -->|Tab 3| D3["Interactive Plotly Visualizations"]
+    C -->|Tab 4| D4["Ask AI: Gemini 2.5 Flash Copilot"]
+    C -->|Tab 5| D5["Executive Markdown Report Export"]
+    D4 -->|API Key Present| E1["Gemini 2.5 Inference"]
+    D4 -->|No API Key| E2["Local Analyst Fallback Engine"]
 ```
 
 ---
